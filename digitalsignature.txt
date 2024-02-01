@@ -1,0 +1,132 @@
+#Alisha Patel
+#I pledge my honor that I have abided by the Stevens Honor System.
+#Digital Signatures using RSA
+
+
+import hashlib
+import random
+
+#Select random primes P and Q from 2^31 and 2^32 - 1
+def coprime(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def is_prime(n: int) -> bool: 
+    """Primality test using 6k+-1 optimization."""
+    if n <= 3:
+        return n > 1
+    if not n%2 or not n%3:
+        return False
+    i = 5
+    stop = int(n**0.5)
+    while i <= stop:
+        if not n%i or not n%(i + 2):
+            return False
+        i += 6
+    return True
+
+
+
+def nBitRandom(n):
+    while True:
+        num = random.randint(2**(n-1), 2**n - 1)
+        if is_prime(num):
+            return num
+
+P = nBitRandom(32)
+Q = nBitRandom(32)
+#Going to take some time to run 32 bit numbers;
+#Runs fine for small numbers
+
+#N = P * Q
+N = P * Q
+
+#Phi(n) = (p-1)(q-1)
+
+phi_n = ((P-1)*(Q-1))
+
+print("P = ", P, ", Q = ", Q,", N = ",  N, ", Phi(N) = ", phi_n)
+
+#Select random e st 1 < e < phi(n) and gcd(e, phi(n)) == 1
+
+x = 0
+y = 1
+
+def exteuclidgcd(a,b):
+   global x, y
+
+   if(a == 0):
+       x = 0
+       y = 1
+       return b
+   else:
+       gcd = exteuclidgcd(b%a, a)
+       c = x
+       d = y
+       x = d - (b//a)*c
+       y = c
+       return gcd
+
+
+def e_key(pn):
+    var = False
+    while (var == False):
+        e = random.randrange(1, phi_n)
+        g = exteuclidgcd(e, phi_n)
+        if g == 1:
+            var = True
+    return e
+
+e = e_key(phi_n)
+print("e = ", e)
+
+
+
+#Calculate d st e * d == 1(mod(phi(n))
+def invmod(a, m):
+    g = exteuclidgcd(a,m)
+    if (g != 1):
+        return 0
+    else:
+        final = (x%m + m)%m
+        return final
+
+d = int(invmod(e, phi_n))
+print("d = ", d)
+
+#DS generation = (d, N)
+M = "message"
+print("M = ", M)
+digest = hashlib.sha256(M.encode('utf-8')).hexdigest()
+print(digest)
+digest_15 = digest[:15]
+#print(digest_15)
+digest_60_int = int(digest_15, base=16)
+print("digest_60 = ", digest_60_int)
+digest_60_bin = bin(digest_60_int)[2:]
+#print(digest_60_bin)
+
+
+def modexp(a,b,c):
+    var = 1
+    if b == 1:
+        var *= a % c
+        return var
+    elif (b % 2) == 0:
+        return modexp(a, b/2, c)**2 % c
+    else:
+        return a*(modexp(a, (b-1)/2, c)**2) % c
+
+ds = modexp(digest_60_int, d, N)
+print("DS = ", ds)
+ds_prime = modexp(ds, e, N)
+print("DS' = ", ds_prime)
+
+
+#DS verification = (e, N); digest_60_final == ds_prime
+
+if digest_60_int == ds_prime:
+    print("verification complete")
+else:
+    print("verification denied")

@@ -1,0 +1,92 @@
+#Alisha Patel
+#I pledge my honor that I have abided by the Stevens Honor System.
+
+import hashlib
+import secrets
+
+#Lamport One Time Digital Signature Scheme
+
+#sender key generation: secret keys
+def keygenerator():
+    sk = [[0]*255, [1]*255]
+    for i in range(len(sk)):
+        for j in range(len(sk[i])):
+            sk[i][j] = bin(secrets.randbits(255))[2:]
+            sk[i][j] = '0'*(255-len(sk[i][j])) + sk[i][j]
+
+    pk = [[0]*255, [1]*255]
+    for i in range(len(pk)):
+        for j in range(len(pk[i])):
+            pk[i][j] = bin(int(hashlib.sha256(sk[i][j].encode()).hexdigest(), 16))
+    
+    keypair = [sk, pk]
+    return keypair
+
+#signature generation of the message
+def signgenerator(M, sk):
+    DS = int(hashlib.sha256(M.encode()).hexdigest(), 16)
+    signature = [0]*255
+
+    for i in range(255):
+        k = int(bin(DS >> i & 1)[2:])
+        signature[i] = sk[k][i]
+    
+    return signature
+
+#client DS verification
+def verification(M, pk, signature):
+    DS = int(hashlib.sha256(M.encode()).hexdigest(), 16)
+    for i in range(255):
+        k = int(bin(DS >> i & 1)[2:])
+        verify = bin(int(hashlib.sha256(str(signature[i]).encode()).hexdigest(), 16))
+        if pk[k][i] != verify:
+            print("DS is not verified")
+    print("DS is verified")
+
+keys = keygenerator()
+M = "any message"
+signature = signgenerator(M, keys[0])
+verification(M, keys[1], signature)
+
+
+
+#S/Key One-Time Password
+
+#server key generation
+
+def skeygen(k, n):
+    hashlist = []
+    for i in range(n+1):
+        h = hash(k)
+        hashlist.append(h)
+        k = hash(k)
+
+    return hashlist
+
+hashlist = skeygen(M, 10)
+print(hashlist)
+hashlist.reverse()
+print(hashlist)
+#skey = H ^ (n+1) (K)
+skey = hashlist[0]
+
+#reverse list for i from n to 1 
+hashlist.pop(0)
+
+
+#server authentication
+
+for i in range(1, len(hashlist)):
+    if skey == hash(hashlist[i]):
+        print("authenticated")
+        skey = hashlist[i]
+    else:
+        print("not authenticated")
+
+
+
+
+
+
+
+

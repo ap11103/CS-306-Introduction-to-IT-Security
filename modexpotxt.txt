@@ -1,0 +1,52 @@
+#Alisha Patel
+#I pledge my honor that I have abided by the Stevens Honor System.
+#Modular Exponentiation
+
+from datetime import datetime
+
+#Iterative Modular Exponentiation
+starttime1 = datetime.now()
+def modexpo(base, expo, mod):
+
+    #Base cases for the bases
+    if(base == 0):
+        return 0
+    if (expo == 0):
+        return 1
+
+    #If exponent is even
+    x = 0
+    if ((expo % 2) == 0):
+        x = modexpo(base, (expo/2), mod)
+        x = (x*x) % mod
+
+    else:
+        x = base % mod
+        x = (x * modexpo(base, (expo - 1), mod) % mod) % mod
+
+    return ((x+mod)% mod)
+
+endtime1 = datetime.now()
+print("Efficient method: ", modexpo(2147483648, 3147483648, 100003))
+#print("Efficient method: ", modexpo(2, 5, 13))
+endtime1 = datetime.now()
+print(endtime1 - starttime1)
+print()
+
+#Naive modular exponentiation:
+
+starttime2 = datetime.now()
+def modexpo2(base, expo, mod):
+    result = pow(base, expo) % mod
+    return result
+
+#it takes really long time to calculate
+print("Naive method: ", modexpo2(2147483648, 3147483648, 100003))
+#print("Naive method: ", modexpo2(2, 100, 1000000007))
+endtime2 = datetime.now()
+print(endtime2 - starttime2)
+print()
+
+
+
+
